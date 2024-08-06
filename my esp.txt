@@ -1,0 +1,114 @@
+-- LocalScript in StarterPlayerScripts
+
+-- Function to create a highlight box around a player
+local function createHighlightBox(player)
+    local character = player.Character or player.CharacterAdded:Wait()
+    
+    -- Wait for the character to be fully loaded
+    if not character:IsDescendantOf(game.Workspace) then
+        character.AncestryChanged:Wait()
+    end
+    
+    -- Create a SelectionBox instance
+    local highlightBox = Instance.new("SelectionBox")
+    highlightBox.Adornee = character
+    highlightBox.LineThickness = 0.05
+    highlightBox.Color3 = Color3.fromRGB(0, 255, 0) -- Green color
+    highlightBox.Parent = character
+    
+    -- Add the SelectionBox to all parts of the character
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            local partHighlight = highlightBox:Clone()
+            partHighlight.Adornee = part
+            partHighlight.Parent = part
+        end
+    end
+end
+
+-- Function to remove highlight box from a player
+local function removeHighlightBox(player)
+    local character = player.Character or player.CharacterAdded:Wait()
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("SelectionBox") then
+            part:Destroy()
+        end
+    end
+end
+
+-- Function to display a custom styled notification
+local function displayNotification()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NotificationGui"
+    screenGui.Parent = game.CoreGui
+
+    local frame = Instance.new("Frame")
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.Size = UDim2.new(0, 400, 0, 100)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -50)
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+
+    -- Adding a UICorner to make the frame corners rounded
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 15)
+    uiCorner.Parent = frame
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Text = "Loaded (Powered by Lua)"
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextSize = 24
+    textLabel.BackgroundTransparency = 1
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Parent = frame
+
+    -- Adding a cyan line at the top and bottom of the frame
+    local topLine = Instance.new("Frame")
+    topLine.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    topLine.Size = UDim2.new(1, 0, 0, 2)
+    topLine.Position = UDim2.new(0, 0, 0, 0)
+    topLine.BorderSizePixel = 0
+    topLine.Parent = frame
+
+    local bottomLine = Instance.new("Frame")
+    bottomLine.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    bottomLine.Size = UDim2.new(1, 0, 0, 2)
+    bottomLine.Position = UDim2.new(0, 0, 1, -2)
+    bottomLine.BorderSizePixel = 0
+    bottomLine.Parent = frame
+
+    -- Tween animation to show the notification
+    game:GetService("TweenService"):Create(frame, TweenInfo.new(1), {Position = UDim2.new(0.5, -200, 0.3, -50)}):Play()
+
+    wait(5) -- Duration in seconds before disappearing
+
+    -- Tween animation to hide the notification
+    game:GetService("TweenService"):Create(frame, TweenInfo.new(1), {Position = UDim2.new(0.5, -200, 0.5, -50)}):Play()
+
+    wait(1)
+
+    screenGui:Destroy()
+end
+
+-- Add highlight box to all players currently in the game
+for _, player in ipairs(game.Players:GetPlayers()) do
+    createHighlightBox(player)
+end
+
+-- Add highlight box to players who join the game
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        createHighlightBox(player)
+    end)
+end)
+
+-- Remove highlight box from players who leave the game
+game.Players.PlayerRemoving:Connect(function(player)
+    removeHighlightBox(player)
+end)
+
+-- Display notification when script loads
+displayNotification()
